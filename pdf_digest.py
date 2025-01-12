@@ -1,6 +1,5 @@
 import streamlit as st
 from PyPDF2 import PdfReader
-import os
 
 # Function to sanitize the text
 def sanitize_text(text):
@@ -36,51 +35,30 @@ if uploaded_file:
     extracted_text = extract_pdf_text(uploaded_file)
     chunks = split_into_chunks(extracted_text)
 
+    # Initialize session state variables for navigation if not already initialized
+    if 'current_index' not in st.session_state:
+        st.session_state.current_index = 0
+
     if chunks:
         st.write("### PDF Text Chunks")
         
-        # Use a markdown block to insert custom JS for swipe functionality
-        swipe_js = """
-        <script>
-        let currentIndex = 0;
-        const chunks = %s;  // This will be the chunks of text as an array.
-        const output = document.getElementById('output');
+        # Display the current chunk of text
+        st.write(f"#### Chunk {st.session_state.current_index + 1}")
+        st.write(chunks[st.session_state.current_index])
 
-        function displayChunk(index) {
-            output.innerHTML = '<h3>Chunk ' + (index + 1) + '</h3><p>' + chunks[index] + '</p>';
-        }
+        # Simulate swipe-up and swipe-down behavior with buttons
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("Swipe Up"):
+                if st.session_state.current_index > 0:
+                    st.session_state.current_index -= 1
+                    st.experimental_rerun()
 
-        displayChunk(currentIndex);
-
-        // Swipe Up and Swipe Down event listeners
-        let touchStartY = 0;
-        let touchEndY = 0;
-
-        document.body.addEventListener('touchstart', function(e) {
-            touchStartY = e.changedTouches[0].screenY;
-        });
-
-        document.body.addEventListener('touchend', function(e) {
-            touchEndY = e.changedTouches[0].screenY;
-            if (touchStartY > touchEndY + 50) { // Swipe Down
-                if (currentIndex < chunks.length - 1) {
-                    currentIndex++;
-                    displayChunk(currentIndex);
-                }
-            } else if (touchStartY < touchEndY - 50) { // Swipe Up
-                if (currentIndex > 0) {
-                    currentIndex--;
-                    displayChunk(currentIndex);
-                }
-            }
-        });
-        </script>
-        """ % (str(chunks))  # Insert the chunks of text in JavaScript
-
-        st.markdown(swipe_js, unsafe_allow_html=True)
-
-        # Create an output div where the chunks will be displayed
-        st.markdown('<div id="output"></div>', unsafe_allow_html=True)
+        with col2:
+            if st.button("Swipe Down"):
+                if st.session_state.current_index < len(chunks) - 1:
+                    st.session_state.current_index += 1
+                    st.experimental_rerun()
 
 else:
     st.write("Please upload a PDF file to start reading.")
