@@ -31,7 +31,7 @@ def extract_pdf_text(pdf_file):
 st.title("Digestible PDF Reader")
 uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
 
-# Initialize state variables if not already in session
+# Initialize session state variables if not already in session
 if 'current_index' not in st.session_state:
     st.session_state.current_index = 0
 
@@ -45,66 +45,14 @@ if uploaded_file:
         st.write(f"#### Chunk {st.session_state.current_index + 1}")
         st.write(chunks[st.session_state.current_index])
 
-        # Creating a custom HTML/JS component for swipe navigation
-        swipe_js = f"""
-        <script>
-        let currentIndex = {st.session_state.current_index};
-        const chunks = {str(chunks)};
-        const output = document.getElementById('output');
-
-        function displayChunk(index) {{
-            output.innerHTML = '<h3>Chunk ' + (index + 1) + '</h3><p>' + chunks[index] + '</p>';
-        }}
-
-        displayChunk(currentIndex);
-
-        // Detect swipe gestures
-        let touchStartY = 0;
-        let touchEndY = 0;
-
-        document.body.addEventListener('touchstart', function(e) {{
-            touchStartY = e.changedTouches[0].screenY;
-        }});
-
-        document.body.addEventListener('touchend', function(e) {{
-            touchEndY = e.changedTouches[0].screenY;
-            if (touchStartY > touchEndY + 50) {{ // Swipe Down
-                if (currentIndex < chunks.length - 1) {{
-                    currentIndex++;
-                    displayChunk(currentIndex);
-                    window.parent.postMessage({{ currentIndex: currentIndex }}, "*");
-                }}
-            }} else if (touchStartY < touchEndY - 50) {{ // Swipe Up
-                if (currentIndex > 0) {{
-                    currentIndex--;
-                    displayChunk(currentIndex);
-                    window.parent.postMessage({{ currentIndex: currentIndex }}, "*");
-                }}
-            }}
-        }});
-        </script>
-        <style>
-        #output {{
-            padding: 20px;
-            background: #f4f4f9;
-            border-radius: 8px;
-            height: 300px;
-            overflow-y: auto;
-        }}
-        </style>
-        <div id="output"></div>
-        """
-        
-        # Inject custom JS for swipe navigation into Streamlit
-        st.markdown(swipe_js, unsafe_allow_html=True)
-
-        # Synchronize the current index value from JS to Python after swipe
-        if 'current_index' in st.session_state:
-            # If JS sends the updated index
-            updated_index = st.session_state.current_index
-            if updated_index != st.session_state.current_index:
-                st.session_state.current_index = updated_index
+        # Buttons for Next and Previous
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button('Previous') and st.session_state.current_index > 0:
+                st.session_state.current_index -= 1
                 st.experimental_rerun()
 
-else:
-    st.write("Please upload a PDF file to start reading.")
+        with col2:
+            if st.button('Next') and st.session_state.current_index < len(chunks) - 1:
+                st.session_state.current_index += 1
+                st.experimental_rerun()
