@@ -40,9 +40,8 @@ if uploaded_file:
     chunks = split_into_chunks(extracted_text)
 
     if chunks:
-        st.write("### PDF Text Chunks")
-        
         # Display the current chunk of text
+        st.write(f"### PDF Text Chunks")
         st.write(f"#### Chunk {st.session_state.current_index + 1}")
         st.write(chunks[st.session_state.current_index])
 
@@ -100,8 +99,9 @@ if uploaded_file:
         st.markdown(swipe_js, unsafe_allow_html=True)
 
         # Synchronize the current index value from JS to Python after swipe
-        updated_index = st.session_state.current_index
         if 'current_index' in st.session_state:
+            # If JS sends the updated index
+            updated_index = st.session_state.current_index
             if updated_index != st.session_state.current_index:
                 st.session_state.current_index = updated_index
                 st.experimental_rerun()
