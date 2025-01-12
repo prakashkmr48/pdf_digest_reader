@@ -98,11 +98,13 @@ if uploaded_file:
         
         # Inject custom JS for swipe navigation into Streamlit
         st.markdown(swipe_js, unsafe_allow_html=True)
-        
-        # Update session state after swipe actions
-        if st.session_state.current_index != currentIndex:
-            st.session_state.current_index = currentIndex
-            st.experimental_rerun()
+
+        # Synchronize the current index value from JS to Python after swipe
+        updated_index = st.session_state.current_index
+        if 'current_index' in st.session_state:
+            if updated_index != st.session_state.current_index:
+                st.session_state.current_index = updated_index
+                st.experimental_rerun()
 
 else:
     st.write("Please upload a PDF file to start reading.")
