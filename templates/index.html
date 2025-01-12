@@ -1,46 +1,60 @@
-<script>
-let currentIndex = {{ st.session_state.current_index }};
-const chunks = {{ str(chunks) }};
-const output = document.getElementById('output');
+# HTML/JS for swipe detection
+        swipe_js = f"""
+        <script>
+        let currentIndex = {st.session_state.current_index};
+        const chunks = {str(chunks)};
+        const output = document.getElementById('output');
 
-function displayChunk(index) {
-    output.innerHTML = '<h3>Chunk ' + (index + 1) + '</h3><p>' + chunks[index] + '</p>';
-}
+        function displayChunk(index) {{
+            output.innerHTML = '<h3>Chunk ' + (index + 1) + '</h3><p>' + chunks[index] + '</p>';
+        }}
 
-displayChunk(currentIndex);
+        displayChunk(currentIndex);
 
-// Detect swipe gestures
-let touchStartY = 0;
-let touchEndY = 0;
+        // Detect swipe gestures
+        let touchStartY = 0;
+        let touchEndY = 0;
 
-document.body.addEventListener('touchstart', function(e) {
-    touchStartY = e.changedTouches[0].screenY;
-});
+        document.body.addEventListener('touchstart', function(e) {{
+            touchStartY = e.changedTouches[0].screenY;
+        }});
 
-document.body.addEventListener('touchend', function(e) {
-    touchEndY = e.changedTouches[0].screenY;
-    if (touchStartY > touchEndY + 50) { // Swipe Down
-        if (currentIndex < chunks.length - 1) {
-            currentIndex++;
-            displayChunk(currentIndex);
-            window.parent.postMessage({ currentIndex: currentIndex }, "*");
-        }
-    } else if (touchStartY < touchEndY - 50) { // Swipe Up
-        if (currentIndex > 0) {
-            currentIndex--;
-            displayChunk(currentIndex);
-            window.parent.postMessage({ currentIndex: currentIndex }, "*");
-        }
-    }
-});
-</script>
-<style>
-#output {
-    padding: 20px;
-    background: #f4f4f9;
-    border-radius: 8px;
-    height: 300px;
-    overflow-y: auto;
-}
-</style>
-<div id="output"></div>
+        document.body.addEventListener('touchend', function(e) {{
+            touchEndY = e.changedTouches[0].screenY;
+            if (touchStartY > touchEndY + 50) {{ // Swipe Down
+                if (currentIndex < chunks.length - 1) {{
+                    currentIndex++;
+                    displayChunk(currentIndex);
+                    window.parent.postMessage({{ currentIndex: currentIndex }}, "*");
+                }}
+            }} else if (touchStartY < touchEndY - 50) {{ // Swipe Up
+                if (currentIndex > 0) {{
+                    currentIndex--;
+                    displayChunk(currentIndex);
+                    window.parent.postMessage({{ currentIndex: currentIndex }}, "*");
+                }}
+            }}
+        }});
+        </script>
+        <style>
+        #output {{
+            padding: 20px;
+            background: #f4f4f9;
+            border-radius: 8px;
+            height: 300px;
+            overflow-y: auto;
+        }}
+        </style>
+        <div id="output"></div>
+        """
+        st.markdown(swipe_js, unsafe_allow_html=True)
+
+        # Synchronize the current index value from JS to Python after swipe
+        if 'current_index' in st.session_state:
+            updated_index = st.session_state.current_index
+            if updated_index != st.session_state.current_index:
+                st.session_state.current_index = updated_index
+                st.experimental_rerun()
+
+else:
+    st.write("Please upload a PDF file to start reading.")
